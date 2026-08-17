@@ -8,8 +8,8 @@ export default function Navbar () {
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className='absolute top-0 left-6 right-6 md:left-12 md:right-12 z-20 rounded-b-3xl border border-slate border-t-0 bg-bg/70 backdrop-blur-md px-8 py-5'
     >
-      <span className='font-display text-2xl font-bold tracking-tight'>
-        Share<span className='text-signal'>Fit</span>
+      <span className='font-display text-2xl font-bold tracking-tight text-white'>
+        ShareFit
       </span>
     </motion.nav>
   )

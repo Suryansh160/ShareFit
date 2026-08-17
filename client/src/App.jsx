@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { joinRoom, sendFile, leaveRoom } from './webrtc/peerConnection.js'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import { useFileReceiver } from './hooks/useFileReciever.js'
-import LandingPage from './components/LandingPage.jsx'
+import Layout from './components/Layout.jsx'
+import LandingPage from './components/pages/LandingPage.jsx'
+import ReceivePage from './components/pages/RecievePage.jsx'
+import SendPage from './components/pages/SendPage.jsx'
 
-// Generates a short, shareable room code
 function generateRoomCode () {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
 }
 
 function App () {
-  const [mode, setMode] = useState(null) // 'send' | 'receive-input' | 'receive' | null
+  const navigate = useNavigate()
+
   const [roomId, setRoomId] = useState('')
   const [roomInput, setRoomInput] = useState('')
   const [connectionState, setConnectionState] = useState('idle')
@@ -40,15 +44,14 @@ function App () {
   async function handleStartSend () {
     const code = generateRoomCode()
     setRoomId(code)
-    setMode('send')
     setErrorMsg('')
+    navigate('/send')
     await joinRoom(code, callbacks)
   }
 
   async function handleStartReceive () {
     if (!roomInput) return
     setRoomId(roomInput)
-    setMode('receive')
     setErrorMsg('')
     await joinRoom(roomInput, callbacks)
   }
@@ -61,7 +64,6 @@ function App () {
 
   function handleReset () {
     leaveRoom()
-    setMode(null)
     setRoomId('')
     setRoomInput('')
     setConnectionState('idle')
@@ -69,92 +71,57 @@ function App () {
     setSelectedFile(null)
     setSendProgress(0)
     setErrorMsg('')
+    navigate('/')
   }
 
   return (
-    <>
-      {!mode && (
-        <LandingPage
-          onSend={handleStartSend}
-          onReceive={() => setMode('receive-input')}
+    <Routes>
+      <Route element={<Layout />}>
+        <Route
+          path='/'
+          element={
+            <LandingPage
+              onSend={handleStartSend}
+              onReceive={() => navigate('/receive')}
+            />
+          }
         />
-      )}
-
-      {mode && mode !== null && (
-        <div
-          style={{
-            padding: '2rem',
-            fontFamily: 'system-ui',
-            maxWidth: 480,
-            margin: '0 auto'
-          }}
-        >
-          {mode === 'receive-input' && (
-            <div>
-              <input
-                value={roomInput}
-                onChange={e => setRoomInput(e.target.value.toUpperCase())}
-                placeholder='Enter room code'
-              />
-              <button onClick={handleStartReceive}>Join</button>
-            </div>
-          )}
-
-          {mode === 'send' && (
-            <div>
-              <p>
-                Room code: <strong>{roomId}</strong>
-              </p>
-              <p>Share this with the receiver.</p>
-              <p>
-                Status: {connectionState} {channelOpen ? '(connected)' : ''}
-              </p>
-
-              {channelOpen && (
-                <div>
-                  <input
-                    type='file'
-                    onChange={e => setSelectedFile(e.target.files[0])}
-                  />
-                  <button onClick={handleSendFile} disabled={!selectedFile}>
-                    Send File
-                  </button>
-                  {sendProgress > 0 && <p>Sending: {sendProgress}%</p>}
-                </div>
-              )}
-            </div>
-          )}
-
-          {mode === 'receive' && (
-            <div>
-              <p>
-                Room code: <strong>{roomId}</strong>
-              </p>
-              <p>
-                Status: {connectionState} {channelOpen ? '(connected)' : ''}
-              </p>
-
-              {incomingFile && (
-                <div>
-                  <p>Receiving: {incomingFile.name}</p>
-                  <p>Progress: {receiveProgress}%</p>
-                </div>
-              )}
-
-              {downloadUrl && (
-                <a href={downloadUrl} download={incomingFile?.name}>
-                  Download {incomingFile?.name}
-                </a>
-              )}
-            </div>
-          )}
-
-          {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-
-          <button onClick={handleReset}>Reset</button>
-        </div>
-      )}
-    </>
+        <Route
+          path='/send'
+          element={
+            <SendPage
+              roomId={roomId}
+              connectionState={connectionState}
+              channelOpen={channelOpen}
+              selectedFile={selectedFile}
+              setSelectedFile={setSelectedFile}
+              sendProgress={sendProgress}
+              errorMsg={errorMsg}
+              onSendFile={handleSendFile}
+              onReset={handleReset}
+            />
+          }
+        />
+        <Route
+          path='/receive'
+          element={
+            <ReceivePage
+              roomId={roomId}
+              roomInput={roomInput}
+              setRoomInput={setRoomInput}
+              onJoin={handleStartReceive}
+              connectionState={connectionState}
+              channelOpen={channelOpen}
+              incomingFile={incomingFile}
+              receiveProgress={receiveProgress}
+              downloadUrl={downloadUrl}
+              errorMsg={errorMsg}
+              onReset={handleReset}
+            />
+          }
+        />
+      </Route>
+    </Routes>
   )
 }
 
