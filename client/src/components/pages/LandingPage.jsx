@@ -30,7 +30,7 @@ export default function LandingPage ({ onSend, onReceive }) {
         <div className='mb-6'>
           <TypewriterEffectSmooth
             words={headlineWords}
-            className='font-display text-6xl md:text-7xl font-bold leading-none tracking-tight'
+            className='font-display[0] text-6xl md:text-7xl font-bold leading-none tracking-tight'
             cursorClassName='bg-signal'
           />
         </div>
