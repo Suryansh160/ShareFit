@@ -4,8 +4,16 @@ import http from 'http'
 import logger from './logger.js'
 import { getIceServers } from './config/iceServers.js'
 import { initSocket } from './sockets/index.js'
+import cors from 'cors'
 
 const app = express()
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN || '*'
+  })
+)
+
 const server = http.createServer(app)
 const PORT = process.env.PORT || 5000
 
