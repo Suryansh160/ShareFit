@@ -1,12 +1,14 @@
 import { socket } from './socket.js'
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL || ''
+
 let peerConnection = null
 let dataChannel = null
 let currentRoomId = null
 let isInitiator = false
 
 async function fetchIceServers () {
-  const res = await fetch('/api/ice-servers')
+  const res = await fetch(`${backendUrl}/api/ice-servers`)
   const data = await res.json()
   return data.iceServers
 }
